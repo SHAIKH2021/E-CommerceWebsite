@@ -1,11 +1,29 @@
 import { ThemeProvider } from "@emotion/react";
-import Catalog from "../../features/catalog/Catalog";
 import Header from  "../layout/Header";
 import { Container, CssBaseline, createTheme } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
+import { useStoreContext } from "../context/StoreContext";
+import { getCookie } from "../util/util";
+import agent from "../api/agent";
 function App() {
+  const {setBasket}=useStoreContext();
+  const [loading,setLoading]=useState(true);
   const [darkMode,setDarkMode]=useState(false);
+  useEffect(()=>{
+    const buyerId= getCookie('buyerId');
+    if(buyerId){
+      agent.Basket.get()
+         .then(basket=>setBasket(basket))
+         .catch(error=>console.log(error))
+         .finally(()=>setLoading(false));
+    }
+    else{
+      setLoading(false);
+    }
+  },[setBasket])
+
+
   const paletteType=darkMode?'dark':'light';
   const theme=createTheme({
     palette:{
@@ -15,6 +33,7 @@ function App() {
       }
     }
   })
+  if(loading) return <h2>Initilizing app...</h2>
   const onSwitchHandler=()=>{
     setDarkMode(!darkMode);
    }
